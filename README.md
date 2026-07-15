@@ -26,7 +26,8 @@ compatibility/interop) against Opus/LPCNet's FARGAN vocoder.
 | `src_v1/` | RADE V1 pure-C port (encoder/decoder/OFDM/acquisition), used for V1 interop |
 | `tools/` | Python scripts that export trained PyTorch weights into the `*_data.c` arrays compiled into `src_v1`/`src_v2` |
 | `third_party/opus` | Git submodule: [xiph/opus](https://github.com/xiph/opus), pinned to the commit providing FARGAN/LPCNet |
-| `patches/` | `opus-nnet.h.diff`, applied to the submodule's `dnn/nnet.h` before building |
+| `patches/` | `opus-nnet.h.diff` — applied to the submodule's `dnn/nnet.h` on Linux/macOS builds only (not needed for the MSVC static-link build) |
+| `scripts/` | `build_opus.bat` — builds `opus.lib` on Windows via CMake/NMake, including FARGAN model data download |
 
 `rade_v2_constants_data.c`, `rade_enc_v2_data.c`, `rade_dec_v2_data.c` (and
 their V1 equivalents in `src_v1/`) contain the trained model weights baked in
@@ -47,33 +48,43 @@ git submodule update --init --recursive
 ```
 
 This checks out `third_party/opus` at commit
-`940d4e5af64351ca8ba8390df3f555484c567fbb`. That commit's `dnn/nnet.h` needs
-one small patch (adds a `RADE_EXPORT` visibility macro and generic-layer
-function declarations) before building:
-
-```bash
-patch third_party/opus/dnn/nnet.h patches/opus-nnet.h.diff
-```
+`940d4e5af64351ca8ba8390df3f555484c567fbb` — the same commit
+`scripts/build_opus.bat` and the original `BuildOpus.cmake` both pin to.
 
 ### Building opus itself
 
 On Linux/macOS, Opus builds the normal autotools way, with DNN/OSCE and
-FARGAN enabled:
+FARGAN enabled. This path also needs `patches/opus-nnet.h.diff` applied to
+`dnn/nnet.h` first (adds a `RADE_EXPORT` visibility macro and generic-layer
+function declarations — matches `BuildOpus.cmake`'s `PATCH_COMMAND`):
 
 ```bash
+patch third_party/opus/dnn/nnet.h patches/opus-nnet.h.diff
 cd third_party/opus
 ./autogen.sh
 ./configure --enable-osce --enable-dred --disable-shared --disable-doc --disable-extra-programs
 make
 ```
 
-On Windows/MSVC there's no ready-made project file for the DNN/FARGAN
-pieces bundled with Opus, so `opus.lib` needs to be produced separately —
-e.g. via a MinGW/MSYS2 toolchain running the same `autogen.sh`/`configure`/
-`make` steps above, or by compiling `celt/`, `silk/`, and `dnn/` into a
-static library with `cl.exe` yourself. However you build it, you should end
-up with a static `opus.lib` (or `libopus.a`) plus the header search paths
-below.
+On Windows, use `scripts/build_opus.bat` from an **x64 Native Tools Command
+Prompt for VS**, with `git`, `cmake`, `tar`, and `powershell` on `PATH`. Run
+it from the directory that should contain the `opus` checkout (it clones
+`opus` itself if not already present, so point it at a scratch location
+rather than `third_party/opus`, or adjust the script's clone step to reuse
+the submodule):
+
+```bat
+scripts\build_opus.bat
+```
+
+This script:
+1. Clones/checks out the same pinned commit, `940d4e5af64351ca8ba8390df3f555484c567fbb`
+2. Downloads the FARGAN/DRED/OSCE model data into `dnn/` via `dnn\download_model.bat <hash>` — Opus doesn't ship this data in the repo itself, and this commit expects model hash `4ed9445b96698bad25d852e912b41495ddfa30c8dbc8a55f9cde5826ed793453`
+3. **Does not apply `patches/opus-nnet.h.diff`** — that patch addresses GCC visibility attributes and isn't needed when statically linking opus into the DLL under MSVC
+4. Runs `cmake -B build -G "NMake Makefiles"` with `OPUS_BUILD_SHARED_LIBRARY=OFF`, `OPUS_DEEP_PLC=ON`, `OPUS_DRED=ON`, `OPUS_OSCE=ON`, then `cmake --build build`, producing `opus\build\opus.lib`
+
+Point `OPUS_SRC`/`OPUS_LIB` (see below) at wherever this script's `opus`
+checkout ends up.
 
 ## Building rade_v2_voice.dll (Windows / MSVC)
 
