@@ -1,0 +1,27 @@
+# Build artifacts
+*.obj
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.idb
+
+# Editor / OS
+.vs/
+*.suo
+*.user
+Thumbs.db
+
+# Debug/scratch data generated while testing (raw sample dumps, not source)
+*.f32
+*.raw
+*.s16
+*.iqf32
+*.wav
+*.aup3
+
+# Python cache
+__pycache__/
+*.pyc
