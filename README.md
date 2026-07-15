@@ -123,3 +123,8 @@ Foundation and contributors — see its own `COPYING` file for details.
 
 D. Rowe, J.-M. Valin, [RADE: A Neural Codec for Transmitting Speech over HF
 Radio Channels](https://arxiv.org/abs/2505.06671), arXiv:2505.06671, 2025.
+
+`docs/README_MSVC_upstream_rade_dll.md` documents building the upstream
+`drowe67/radae` Python-embedded C API (`rade.dll`) with MSVC — a separate,
+Python-dependent DLL, distinct from this repo's pure-C `rade_v2_voice.dll`.
+Kept here as background reference for the opus/MSVC build reasoning.
