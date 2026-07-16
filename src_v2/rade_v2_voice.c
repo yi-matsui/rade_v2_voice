@@ -37,10 +37,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* 2026-07-14: RadeCallTestはコンソールを持たないGUIアプリのため、
-   fprintf(stderr,...)は今までどこにも表示されていなかった(見えない
-   ログを頼りに調査していたのがそもそもの見落とし)。OutputDebugStringA
-   に切り替え、Sysinternals DebugView 等で実行中に観察できるようにする。 */
+/* RadeCallTestはコンソールを持たないGUIアプリのため、fprintf(stderr,...)
+   は表示先が無い。起動時の前提崩れ等の重要な警告を、Sysinternals
+   DebugView等で観察できるよう OutputDebugStringA 経由で出す。 */
 #ifdef _WIN32
 #include <windows.h>
 static void rv_dbg(const char *fmt, ...)
@@ -147,14 +146,6 @@ typedef struct {
         再synchronize直後の音質を優先する方針で再priming を選択した) */
     int   prev_rx_state;
 
-    /* 診断カウンタ(2026-07-14追加。RadeCallTest実運用で「たまに音が出る」
-       症状の原因調査用。OutputDebugStringA経由でDebugViewから観察する)。 */
-    long  dbg_push_calls;       /* rv_rx_push_modem 呼び出し回数 */
-    long  dbg_iq_overflow;      /* IQバッファ溢れでサンプルを捨てた回数 */
-    long  dbg_rade_rx_calls;    /* rade_rx()/rade_v2_rx() 実呼び出し回数 */
-    int   dbg_last_nin;         /* 直近の nin 値(V1: rade_nin、V2: nin_next) */
-    int   dbg_expected_n8;      /* 初回のn8を記憶し、以後の異常検知の基準にする */
-    int   dbg_prev_logged_synced;  /* 前回ログ時のsynced値(変化検知用) */
 
     /* ==== V1(DR-NOPY, rade_api.h)専用フィールド(2026-07-13追加) ====
        ★注意: V1のfeatures内訳(1回のrade_rx呼び出しで何フレーム分出るか)は
@@ -362,9 +353,9 @@ static void rv_hilbert_push(rv_rx_t* s, const float* real_in, int n)
             s->iqbuf[s->iq_write_pos].real = re;
             s->iqbuf[s->iq_write_pos].imag = im;
             s->iq_write_pos++;
-        } else {
-            s->dbg_iq_overflow++;   /* 2026-07-14診断: 溢れて捨てた回数 */
         }
+        /* 溢れた場合は黙って捨てる(通常のオーディオコールバック粒度では
+           起きない想定)。 */
 
         /* 履歴シフト: htbuf[0..HT_N) を1つ前に詰め、末尾を空ける */
         for (j = 0; j < HT_N; j++)
@@ -422,32 +413,6 @@ RV_API int rv_rx_push_modem(void* h, float* modem8k, int n8,
 
     if (!s || !modem8k || n8 <= 0) return 0;
 
-    /* 2026-07-14診断(第2版): 毎コールバック記録する。
-       n8(このコールバックで来たサンプル数)が通常値(約800)から外れて
-       いれば、ライブキャプチャ側のグリッチ(オーディオの途切れ・詰まり)の
-       直接の証拠になる。通常時は間引いて出し、異常値(n8が想定と大きく
-       違う、または前回よりsyncedが変化した)のときだけ即ログすることで
-       DebugViewのログ量を抑えつつ、肝心な瞬間を逃さないようにする。 */
-    s->dbg_push_calls++;
-    {
-        int synced_now = s->last_synced;
-        int synced_changed = (synced_now != s->dbg_prev_logged_synced);
-        /* n8 の想定値(初回に記憶。以後これと違えばグリッチとみなす) */
-        if (s->dbg_expected_n8 == 0) s->dbg_expected_n8 = n8;
-        int n8_anomaly = (n8 < s->dbg_expected_n8 * 3 / 4 ||
-                          n8 > s->dbg_expected_n8 * 5 / 4);
-
-        if (synced_changed || n8_anomaly || (s->dbg_push_calls % 10 == 1)) {
-            rv_dbg("[rv_rx %s] call#%ld n8=%d(exp%d)%s iqbuf=%d/%d overflow=%ld rade_rx_calls=%ld last_nin=%d synced=%d%s\n",
-                   s->is_v2 ? "V2" : "V1", s->dbg_push_calls, n8, s->dbg_expected_n8,
-                   n8_anomaly ? " !ANOMALY!" : "",
-                   s->iq_write_pos - s->iq_read_pos, RV_IQBUF_CAP,
-                   s->dbg_iq_overflow, s->dbg_rade_rx_calls, s->dbg_last_nin,
-                   synced_now, synced_changed ? " !CHANGED!" : "");
-            s->dbg_prev_logged_synced = synced_now;
-        }
-    }
-
     /* --- [1] 実信号 → 複素IQ(状態は s->htbuf に保持)。V1/V2共通 --- */
     rv_hilbert_push(s, modem8k, n8);
 
@@ -464,9 +429,6 @@ RV_API int rv_rx_push_modem(void* h, float* modem8k, int n8,
                                (const RADE_COMP*)&s->iqbuf[s->iq_read_pos],
                                &s->nin_next,
                                features, &has_features, &sig_det, &sine_det);
-            s->dbg_rade_rx_calls++;
-            s->dbg_last_nin = nin_before;
-
             s->iq_read_pos += nin_before;
             s->last_synced = sig_det;
             (void)sine_det;
@@ -505,8 +467,6 @@ RV_API int rv_rx_push_modem(void* h, float* modem8k, int n8,
             n_out = rade_rx(s->radeV1, s->v1_features_buf, &has_eoo,
                             s->v1_eoo_buf,
                             (RADE_COMP*)&s->iqbuf[s->iq_read_pos]);
-            s->dbg_rade_rx_calls++;
-            s->dbg_last_nin = nin;
             s->iq_read_pos += nin;
 
             state = rade_sync(s->radeV1);
@@ -535,24 +495,22 @@ RV_API int rv_rx_push_modem(void* h, float* modem8k, int n8,
             }
 
             if (has_eoo) {
-                /* 2026-07-14: バッファ拡張(9->64バイト)だけではクラッシュが
-                   直らなかった。callsign用バッファ以外(呼び出しそのもの、
-                   あるいは v1_eoo_buf 自体)が壊れている疑いが強まったため、
-                   まず無条件ログで実測する。call回数に関わらず毎回出す
-                   (クラッシュ直前の最後の1行が手がかりになる)。 */
+                /* EOOコールサインデコード。rade_rx_get_eoo_callsign()の
+                   内部実装が想定外入力(信号品質・方式不一致等)でバッファ
+                   境界を超えて書き込む可能性を考慮し、呼び出し側は
+                   RADE_EOO_CALLSIGN_MAX+1(9バイト)より十分大きい64バイトの
+                   スタックバッファを確保する(2026-07-14の実クラッシュ調査で
+                   判明した安全策。真因はAudioEngine.cs側のスレッド競合
+                   だったが、本バッファ拡張自体も安全側の対策として維持)。 */
                 char cs[64];
                 int n;
-                rv_dbg("[rv_rx V1] EOO発生: n_out=%d v1_n_eoo_bits=%d call#%ld\n",
-                       n_out, s->v1_n_eoo_bits, s->dbg_push_calls);
                 memset(cs, 0, sizeof(cs));
                 n = rade_rx_get_eoo_callsign(s->v1_eoo_buf, s->v1_n_eoo_bits, cs);
-                rv_dbg("[rv_rx V1] EOOコールサイン戻り値: n=%d\n", n);
                 if (n > 0 && n <= RADE_EOO_CALLSIGN_MAX) {
                     memcpy(s->v1_callsign_buf, cs, RADE_EOO_CALLSIGN_MAX);
                     s->v1_callsign_buf[RADE_EOO_CALLSIGN_MAX] = 0;
                     s->callsign_seq++;
                 }
-                rv_dbg("[rv_rx V1] EOO処理完了\n");
             }
         }
     }
