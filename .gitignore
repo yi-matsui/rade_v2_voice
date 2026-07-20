@@ -25,3 +25,13 @@ Thumbs.db
 # Python cache
 __pycache__/
 *.pyc
+
+
+# third_party/opus: build outputs and downloaded model data
+third_party/opus/dnn/dnn/
+third_party/opus/build/
+third_party/opus/dnn/*_data.c
+third_party/opus/dnn/*_data.h
+third_party/opus/dnn/opus_data-*.tar.gz
+third_party/opus/dnn/models/
+third_party/opus/dnn/dred_rdovae_constants.h
