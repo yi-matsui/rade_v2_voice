@@ -1,7 +1,7 @@
 # rade_v2_voice
 
 A pure-C, BSD-licensed implementation of the `rv_*` DLL interface used by
-[RadeCallTest](https://github.com/) style Windows applications, built on
+[RadeCallTest](https://github.com/yi-matsui/RadeCallTest) style Windows applications, built on
 [RADE](https://github.com/drowe67/radae) (Radio Autoencoder) V1/V2 and the
 [FARGAN](https://arxiv.org/abs/2405.21069) vocoder.
 
@@ -113,11 +113,22 @@ This produces `rade_v2_voice.dll`, exporting the `rv_*` functions consumed by
 
 ## License
 
-BSD 2-Clause, matching the upstream [RADE](https://github.com/drowe67/radae)
-project (see `LICENSE`). KissFFT (`src_v2/kiss_fft.c`, `src_v1/kiss_fft.c`)
-is BSD-licensed, © Mark Borgerding. The `third_party/opus` submodule is
-[Xiph's Opus](https://opus-codec.org/) project, BSD-licensed, © Xiph.Org
-Foundation and contributors — see its own `COPYING` file for details.
+This project is licensed under the **BSD 2-Clause License**. See the `LICENSE` file for details.
+
+* **KissFFT:** `src_v2/kiss_fft.c` and `src_v1/kiss_fft.c` are licensed under the BSD license (© Mark Borgerding).
+* **Opus/LPCNet:** The `third_party/opus` submodule is part of the Xiph's Opus project, licensed under the BSD license (© Xiph.Org Foundation and contributors).
+* **RADE:** Based on the [RADE](https://github.com/drowe67/radae) project, licensed under the BSD 2-Clause License (© David Rowe).
+
+## Acknowledgments
+
+This project would not have been possible without the foundational work of the following projects and individuals:
+
+* **David Rowe (drowe67):** For creating [RADE](https://github.com/drowe67/radae) and [FreeDV](https://freedv.org/), which provided the essential framework for HF digital voice communication.
+* **Xiph.Org Foundation:** For their incredible work on [Opus](https://opus-codec.org/), LPCNet, and FARGAN, which made high-quality neural voice coding feasible for amateur radio applications.
+* **The FreeDV Community:** For continuous feedback and testing, which helped refine the implementation and improve interop.
+* **Mark Borgerding:** For his portable and efficient [KissFFT](https://github.com/mborgerding/kissfft) implementation.
+
+Special thanks to the early testers who provided invaluable debugging insights during the development of this pure-C port.
 
 ## Reference
 
