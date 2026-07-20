@@ -3,8 +3,8 @@ rem build_test_tx_v2.bat -- RADE V2 送信部の数値検証(C=Python)
 rem 前提: radae ルートで gen_tx_ref.py 実行済み、export_rade_v2_weights.py で
 rem       rade_enc_v2_data.c/.h 生成済み。
 setlocal
-if "%OPUS_SRC%"=="" set OPUS_SRC=..\..\dr-radev2\opus
-if "%OPUS_LIB%"=="" set OPUS_LIB=..\..\dr-radev2\opus\build\opus.lib
+if "%OPUS_SRC%"=="" set OPUS_SRC=..\third_party\opus
+if "%OPUS_LIB%"=="" set OPUS_LIB=..\third_party\opus\build\opus.lib
 
 if not exist tx_meta.txt (
     echo エラー: tx_meta.txt がありません。先に python gen_tx_ref.py を実行してください。

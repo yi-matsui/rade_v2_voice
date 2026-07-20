@@ -6,8 +6,8 @@ rem   radae リポジトリの dr-crowd ブランチ(src/lpcnet_demo.c)由来。
 rem   依存は opus.lib のみ(RADE本体やPythonとは無関係の独立ツール)。
 rem ============================================================
 setlocal
-if "%OPUS_SRC%"=="" set OPUS_SRC=..\..\dr-radev2\opus
-if "%OPUS_LIB%"=="" set OPUS_LIB=..\..\dr-radev2\opus\build\opus.lib
+if "%OPUS_SRC%"=="" set OPUS_SRC=..\third_party\opus
+if "%OPUS_LIB%"=="" set OPUS_LIB=..\third_party\opus\build\opus.lib
 
 if not exist lpcnet_demo.c (
     echo エラー: lpcnet_demo.c がありません。

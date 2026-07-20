@@ -11,8 +11,8 @@ rem   - rade_v2_core.h がある(RADEDecV2 の前方 typedef)
 rem   - radae ルートで gen_dec_ref.py を実行し dec_in/ref .f32, dec_meta.txt 生成済み
 rem ============================================================
 setlocal
-if "%OPUS_SRC%"=="" set OPUS_SRC=..\..\dr-radev2\opus
-if "%OPUS_LIB%"=="" set OPUS_LIB=..\..\dr-radev2\opus\build\opus.lib
+if "%OPUS_SRC%"=="" set OPUS_SRC=..\third_party\opus
+if "%OPUS_LIB%"=="" set OPUS_LIB=..\third_party\opus\build\opus.lib
 
 if not exist dec_meta.txt (
     echo エラー: dec_meta.txt がありません。先に Python 基準を生成:
@@ -20,7 +20,7 @@ if not exist dec_meta.txt (
     goto :done
 )
 if not exist rade_dec_v2_data.c (
-    echo エラー: rade_dec_v2_data.c がありません(export生成物)。
+    echo エラー: rade_dec_v2_data.c がありません（export生成物）。
     goto :done
 )
 

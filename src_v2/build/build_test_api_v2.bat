@@ -1,8 +1,8 @@
 @echo off
 rem build_test_api_v2.bat -- rade_api_v2 経由の統合テスト(EXE版、DLLではなく静的リンク)
 setlocal
-if "%OPUS_SRC%"=="" set OPUS_SRC=..\..\dr-radev2\opus
-if "%OPUS_LIB%"=="" set OPUS_LIB=..\..\dr-radev2\opus\build\opus.lib
+if "%OPUS_SRC%"=="" set OPUS_SRC=..\third_party\opus
+if "%OPUS_LIB%"=="" set OPUS_LIB=..\third_party\opus\build\opus.lib
 
 if not exist rade_v2_constants_data.c (
     echo エラー: rade_v2_constants_data.c がありません。先に実行:

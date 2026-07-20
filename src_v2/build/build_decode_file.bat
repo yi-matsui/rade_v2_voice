@@ -2,7 +2,7 @@
 rem build_decode_file.bat - build rade_v2_decode_file.exe (pure ASCII)
 rem Links the .c sources directly (not rade_v2.dll) to avoid stale-DLL issues.
 
-set OPUS=..\..\dr-radev2\opus
+set OPUS=..\third_party\opus
 set INC=/I. /I%OPUS%\dnn /I%OPUS%\include /I%OPUS%\celt /I%OPUS%
 
 del *.obj rade_v2_decode_file.exe 2>nul

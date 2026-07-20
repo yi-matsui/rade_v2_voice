@@ -13,8 +13,8 @@ rem   rade_v2_constants_data.c/.h(export_rade_v2_constants.py 生成),
 rem   kiss_fft.c/.h/_kiss_fft_guts.h(EOO用)
 rem ============================================================
 setlocal
-if "%OPUS_SRC%"=="" set OPUS_SRC=..\..\dr-radev2\opus
-if "%OPUS_LIB%"=="" set OPUS_LIB=..\..\dr-radev2\opus\build\opus.lib
+if "%OPUS_SRC%"=="" set OPUS_SRC=..\third_party\opus
+if "%OPUS_LIB%"=="" set OPUS_LIB=..\third_party\opus\build\opus.lib
 
 if not exist rade_v2_constants_data.c (
     echo エラー: rade_v2_constants_data.c がありません。先に実行:
@@ -30,7 +30,7 @@ set INCS=/I. /I"%OPUS_SRC%\dnn" /I"%OPUS_SRC%\include" /I"%OPUS_SRC%\celt" /I"%O
 set SRCS=rade_api_v2.c rade_rx_v2.c rade_extract_v2.c rade_eoo_v2.c rade_frame_sync.c rade_dec_v2.c rade_enc_v2.c rade_tx_v2.c rade_sync_v2.c rade_sync_data.c rade_dec_v2_data.c rade_enc_v2_data.c rade_v2_constants_data.c kiss_fft.c rade_bpf_v2.c 
 
 echo === DLL ビルド開始 ===
-cl /nologo /MD /utf-8 /Od /LD %INCS% %SRCS% "%OPUS_LIB%" /Fe:rade_v2.dll
+cl /nologo /MD /utf-8 /O2 /Oi /fp:fast /arch:AVX /DNDEBUG /LD %INCS% %SRCS% "%OPUS_LIB%" /Fe:rade_v2.dll
 if errorlevel 1 goto :done
 echo === DLL ビルド完了: rade_v2.dll ===
 
