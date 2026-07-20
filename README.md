@@ -115,9 +115,16 @@ This produces `rade_v2_voice.dll`, exporting the `rv_*` functions consumed by
 
 This project is licensed under the **BSD 2-Clause License**. See the `LICENSE` file for details.
 
-* **KissFFT:** `src_v2/kiss_fft.c` and `src_v1/kiss_fft.c` are licensed under the BSD license (© Mark Borgerding).
-* **Opus/LPCNet:** The `third_party/opus` submodule is part of the Xiph's Opus project, licensed under the BSD license (© Xiph.Org Foundation and contributors).
-* **RADE:** Based on the [RADE](https://github.com/drowe67/radae) project, licensed under the BSD 2-Clause License (© David Rowe).
+### Third-Party Components and Licenses
+This project reuses and incorporates several third-party components:
+
+* **RADE:** Based on the [RADE](https://github.com/drowe67/radae) project, licensed under BSD 2-Clause (© David Rowe).
+* **Opus:** The `third_party/opus` submodule is part of the Xiph's Opus project, licensed under **BSD 3-Clause** (© Xiph.Org Foundation and contributors).
+* **Opus DNN/FARGAN:** Includes kernels and model weight export tools licensed under **BSD 2-Clause** (© Amazon / Jan Buethe).
+* **KissFFT:** Used for signal processing in `src_v2/` and `src_v1/`, licensed under **BSD 3-Clause** (© Mark Borgerding).
+
+**Note on Redistribution:**
+Third-party copyright notices and license texts are bundled in the `NOTICE` file. When redistributing this codec in any form, you **must include the `NOTICE` file** to comply with the license requirements of the individual components.
 
 ## Acknowledgments
 
