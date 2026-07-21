@@ -61,8 +61,8 @@ if exist third_party\opus\dnn\fargan_data.h (
     echo   取得済み。スキップします。
 ) else (
     echo   ダウンロードします（初回のみ、要ネット接続）...
-    pushd third_party\opus\dnn
-    call download_model.bat %OPUS_MODEL_HASH%
+    pushd third_party\opus
+    call dnn\download_model.bat %OPUS_MODEL_HASH%
     popd
     if not exist third_party\opus\dnn\fargan_data.h (
         echo エラー: モデルデータの取得に失敗しました。
